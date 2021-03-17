@@ -12,26 +12,26 @@ import (
 	"time"
 
 	"github.com/discord/lilliput"
-	"github.com/julienschmidt/httprouter"
 )
 
 var EncodeOptions = map[string]map[int]int{
-	".jpeg": map[int]int{lilliput.JpegQuality: 85},
-	".png":  map[int]int{lilliput.PngCompression: 7},
-	".webp": map[int]int{lilliput.WebpQuality: 85},
+	".jpeg": {lilliput.JpegQuality: 85},
+	// ".png":  map[int]int{lilliput.PngCompression: 7},
+	// ".webp": map[int]int{lilliput.WebpQuality: 85},
 }
 
 func main() {
-	router := httprouter.New()
-	router.PUT("/upload", receiveImage)
-	err := http.ListenAndServe("0.0.0.0:3000", router)
+	http.HandleFunc("/", receiveImage)
+	fs := http.FileServer(http.Dir("/Users/scott/dev/guppy/img"))
+	http.Handle("/img/", http.StripPrefix("/img", fs))
+
+	err := http.ListenAndServe("0.0.0.0:3000", nil)
 	if err != nil {
-		// log.Fatal(err)
 		fmt.Println("error")
 	}
 }
 
-func receiveImage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func receiveImage(w http.ResponseWriter, r *http.Request) {
 	err := uploadImage(r)
 	if err != nil {
 		http.Error(w, "Invalid Data", http.StatusBadRequest)
@@ -48,7 +48,7 @@ func uploadImage(r *http.Request) error {
 	}
 	defer file.Close()
 
-	f, err := os.OpenFile("/Users/scott/dev/guppy/"+handler.Filename, os.O_WRONLY|os.O_CREATE, 0666)
+	f, err := os.OpenFile("/Users/scott/dev/guppy/img/"+handler.Filename, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		return err
 	}
@@ -56,11 +56,14 @@ func uploadImage(r *http.Request) error {
 
 	io.Copy(f, file)
 
-	compress("/Users/scott/dev/guppy/"+handler.Filename, "")
+	compress("/Users/scott/dev/guppy/img/"+handler.Filename, "4k.jpg", 3840, 2160)
+	compress("/Users/scott/dev/guppy/img/"+handler.Filename, "1920.jpg", 1920, 1080)
+	compress("/Users/scott/dev/guppy/img/"+handler.Filename, "1280.jpg", 1280, 720)
+
 	return nil
 }
 
-func compress(inputFilename string, outputFilename string) {
+func compress(inputFilename string, outputFilename string, outputWidth int, outputHeight int) {
 	// var inputFilename string
 	// var outputWidth int
 	// var outputHeight int
@@ -127,28 +130,28 @@ func compress(inputFilename string, outputFilename string) {
 		outputType = filepath.Ext(outputFilename)
 	}
 
-	// if outputWidth == 0 {
-	// 	outputWidth = header.Width()
-	// }
+	if outputWidth == 0 {
+		outputWidth = header.Width()
+	}
 
-	// if outputHeight == 0 {
-	// 	outputHeight = header.Height()
-	// }
+	if outputHeight == 0 {
+		outputHeight = header.Height()
+	}
 
-	// resizeMethod := lilliput.ImageOpsFit
+	resizeMethod := lilliput.ImageOpsFit
 	// if stretch {
 	// 	resizeMethod = lilliput.ImageOpsResize
 	// }
 
-	// if outputWidth == header.Width() && outputHeight == header.Height() {
-	// 	resizeMethod = lilliput.ImageOpsNoResize
-	// }
+	if outputWidth == header.Width() && outputHeight == header.Height() {
+		resizeMethod = lilliput.ImageOpsNoResize
+	}
 
 	opts := &lilliput.ImageOptions{
-		FileType: outputType,
-		// Width:                outputWidth,
-		// Height:               outputHeight,
-		// ResizeMethod:         resizeMethod,
+		FileType:             outputType,
+		Width:                outputWidth,
+		Height:               outputHeight,
+		ResizeMethod:         resizeMethod,
 		NormalizeOrientation: true,
 		EncodeOptions:        EncodeOptions[outputType],
 	}
@@ -165,16 +168,25 @@ func compress(inputFilename string, outputFilename string) {
 		outputFilename = "resized" + filepath.Ext(inputFilename)
 	}
 
-	if _, err := os.Stat(outputFilename); !os.IsNotExist(err) {
-		fmt.Printf("output filename %s exists, quitting\n", outputFilename)
+	inputType := filepath.Ext(inputFilename)
+	splitInput := strings.Split(inputFilename, inputType)
+
+	builtOutputName := splitInput[0] + "-" + outputFilename
+
+	if _, err := os.Stat(builtOutputName); !os.IsNotExist(err) {
+		fmt.Printf("output filename %s exists, quitting\n", builtOutputName)
 		os.Exit(1)
 	}
 
-	err = ioutil.WriteFile(outputFilename, outputImg, 0400)
+	err = ioutil.WriteFile(builtOutputName, outputImg, 0644)
 	if err != nil {
 		fmt.Printf("error writing out resized image, %s\n", err)
 		os.Exit(1)
 	}
 
-	fmt.Printf("image written to %s\n", outputFilename)
+	fmt.Printf("image written to %s\n", builtOutputName)
+}
+
+func compressAndResize() {
+
 }
