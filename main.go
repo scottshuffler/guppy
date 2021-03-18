@@ -47,6 +47,7 @@ func main() {
 }
 
 func health(w http.ResponseWriter, r *http.Request) {
+
 	codeParams, ok := r.URL.Query()["code"]
 	if ok && len(codeParams) > 0 {
 		statusCode, _ := strconv.Atoi(codeParams[0])
@@ -58,11 +59,23 @@ func health(w http.ResponseWriter, r *http.Request) {
 }
 
 func receiveImage(w http.ResponseWriter, r *http.Request) {
-	err := uploadImage(r)
-	if err != nil {
-		http.Error(w, "Invalid Data", http.StatusBadRequest)
-		return
+	if r.Method == "GET" {
+		codeParams, ok := r.URL.Query()["code"]
+		if ok && len(codeParams) > 0 {
+			statusCode, _ := strconv.Atoi(codeParams[0])
+			if statusCode >= 200 && statusCode < 600 {
+				w.WriteHeader(statusCode)
+			}
+		}
+		fmt.Fprintf(w, "Glub Glub")
+	} else if r.Method == "PUT" {
+		err := uploadImage(r)
+		if err != nil {
+			http.Error(w, "Invalid Data", http.StatusBadRequest)
+			return
+		}
 	}
+
 }
 
 func uploadImage(r *http.Request) error {
