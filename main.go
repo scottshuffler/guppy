@@ -38,7 +38,7 @@ func main() {
 
 	// fmt.Printf("%v", content)
 
-	err := http.ListenAndServe("0.0.0.0:3000", nil)
+	err := http.ListenAndServe("0.0.0.0:80", nil)
 	if err != nil {
 		fmt.Println("error")
 	}
