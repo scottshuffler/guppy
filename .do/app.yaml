@@ -1,0 +1,6 @@
+name: guppy
+services:
+- name: web
+  github:
+    repo: scottshuffler/guppy
+    branch: main
