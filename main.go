@@ -1,7 +1,7 @@
 package main
 
 import (
-	"embed"
+	// "embed"
 	"flag"
 	"fmt"
 	"io"
@@ -10,7 +10,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"text/template"
+
+	// "text/template"
 	"time"
 
 	"github.com/discord/lilliput"
@@ -23,19 +24,19 @@ var EncodeOptions = map[string]map[int]int{
 }
 
 // content holds our static web server content.
-//go:embed img/*
-var content embed.FS
+// go:embed img/*
+// var content embed.FS
 
 func main() {
 	http.HandleFunc("/", receiveImage)
-	// fs := http.FileServer(http.Dir("/Users/scott/dev/guppy/img"))
-	// http.Handle("/img/", http.StripPrefix("/img", fs))
+	fs := http.FileServer(http.Dir("/Users/scott/dev/guppy/img"))
+	http.Handle("/img/", http.StripPrefix("/img", fs))
 
-	http.Handle("/img/", http.StripPrefix("/img", http.FileServer(http.FS(content))))
+	// http.Handle("/img/", http.StripPrefix("/img", http.FileServer(http.FS(content))))
 
-	template.ParseFS(content, "*")
+	// template.ParseFS(content, "*")
 
-	fmt.Printf("%v", content)
+	// fmt.Printf("%v", content)
 
 	err := http.ListenAndServe("0.0.0.0:3000", nil)
 	if err != nil {
