@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	// "text/template"
@@ -29,6 +30,7 @@ var EncodeOptions = map[string]map[int]int{
 
 func main() {
 	http.HandleFunc("/", receiveImage)
+	http.HandleFunc("/status", health)
 	fs := http.FileServer(http.Dir("/Users/scott/dev/guppy/img"))
 	http.Handle("/img/", http.StripPrefix("/img", fs))
 
@@ -42,6 +44,17 @@ func main() {
 	if err != nil {
 		fmt.Println("error")
 	}
+}
+
+func health(w http.ResponseWriter, r *http.Request) {
+	codeParams, ok := r.URL.Query()["code"]
+	if ok && len(codeParams) > 0 {
+		statusCode, _ := strconv.Atoi(codeParams[0])
+		if statusCode >= 200 && statusCode < 600 {
+			w.WriteHeader(statusCode)
+		}
+	}
+	fmt.Fprintf(w, "Glub Glub")
 }
 
 func receiveImage(w http.ResponseWriter, r *http.Request) {
