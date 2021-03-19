@@ -47,7 +47,6 @@ func main() {
 }
 
 func health(w http.ResponseWriter, r *http.Request) {
-
 	codeParams, ok := r.URL.Query()["code"]
 	if ok && len(codeParams) > 0 {
 		statusCode, _ := strconv.Atoi(codeParams[0])
