@@ -31,7 +31,10 @@ var EncodeOptions = map[string]map[int]int{
 func main() {
 	http.HandleFunc("/", receiveImage)
 	http.HandleFunc("/status", health)
-	fs := http.FileServer(http.Dir("/Users/scott/dev/guppy/img"))
+
+	pwd, _ := os.Getwd()
+	path := filepath.Join(pwd + "/img")
+	fs := http.FileServer(http.Dir(path))
 	http.Handle("/img/", http.StripPrefix("/img", fs))
 
 	// http.Handle("/img/", http.StripPrefix("/img", http.FileServer(http.FS(content))))
@@ -91,7 +94,10 @@ func uploadImage(r *http.Request) error {
 
 	fmt.Println("Uploading image: " + handler.Filename)
 
-	f, err := os.OpenFile("/Users/scott/dev/guppy/img/"+handler.Filename, os.O_WRONLY|os.O_CREATE, 0666)
+	pwd, _ := os.Getwd()
+	path := filepath.Join(pwd + "/img/" + handler.Filename)
+
+	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		return err
 	}
@@ -99,9 +105,9 @@ func uploadImage(r *http.Request) error {
 
 	io.Copy(f, file)
 
-	compress("/Users/scott/dev/guppy/img/"+handler.Filename, "4k.jpg", 3840, 2160)
-	compress("/Users/scott/dev/guppy/img/"+handler.Filename, "1920.jpg", 1920, 1080)
-	compress("/Users/scott/dev/guppy/img/"+handler.Filename, "1280.jpg", 1280, 720)
+	compress(path, "4k.jpg", 3840, 2160)
+	compress(path, "1920.jpg", 1920, 1080)
+	compress(path, "1280.jpg", 1280, 720)
 
 	return nil
 }
