@@ -40,6 +40,8 @@ func main() {
 
 	// fmt.Printf("%v", content)
 
+	fmt.Println("Server started")
+
 	err := http.ListenAndServe("0.0.0.0:80", nil)
 	if err != nil {
 		fmt.Println("error")
@@ -78,6 +80,7 @@ func receiveImage(w http.ResponseWriter, r *http.Request) {
 }
 
 func uploadImage(r *http.Request) error {
+
 	r.ParseMultipartForm(32 << 20)
 
 	file, handler, err := r.FormFile("file")
@@ -85,6 +88,8 @@ func uploadImage(r *http.Request) error {
 		return err
 	}
 	defer file.Close()
+
+	fmt.Println("Uploading image: " + handler.Filename)
 
 	f, err := os.OpenFile("/Users/scott/dev/guppy/img/"+handler.Filename, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
